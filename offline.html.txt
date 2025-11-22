@@ -1,0 +1,609 @@
+<!DOCTYPE html>          
+<html lang="hi">          
+<head>          
+<meta charset="UTF-8">          
+<meta name="viewport" content="width=device-width, initial-scale=1.0">          
+<title>✅ स्मार्ट टास्क + नोट प्लानर</title>          
+
+<style>          
+body { font-family:'Poppins', sans-serif; background:#f9fafb; margin:0; padding:1rem; color:#111827; }          
+h1 { text-align:center; color:#3730a3; margin-bottom:1rem; }          
+
+/* ---------- New Page Button Style ---------- */
+.redirect-btn-container {
+    text-align: center;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.redirect-btn {
+    background:#4f46e5;  
+    color:white;  
+    padding:0.6rem 1.5rem;  
+    border:none;  
+    border-radius:0.6rem;  
+    cursor:pointer;  
+    font-weight:600;  
+    font-size: 1rem;
+    transition: background 0.2s;
+}
+.redirect-btn:hover {
+    background: #4338ca;
+}
+
+/* Input Section */          
+.task-input-section { display:flex; flex-wrap:wrap; gap:0.5rem; background:#fff; padding:1rem; border-radius:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); justify-content:center; }          
+.task-input-section input { flex:1; min-width:150px; padding:0.8rem; border:2px solid #c7d2fe; border-radius:0.6rem; outline:none; }          
+.task-input-section button { background:#4f46e5; color:white; border:none; border-radius:0.6rem; padding:0.8rem 1.6rem; cursor:pointer; font-weight:600; }          
+.task-input-section button:hover { background:#4338ca; }          
+
+/* Filter */          
+.filter-bar { text-align:center; margin:1rem 0; }          
+.filter-bar input { padding:0.6rem; border-radius:0.6rem; border:1px solid #c7d2fe; }          
+
+/* Task List */          
+.task-list-section { background:#fff; border-radius:1rem; padding:1rem; box-shadow:0 4px 15px rgba(0,0,0,0.1); }          
+.date-group { border-top:1px solid #e5e7eb; padding-top:1rem; margin-top:1rem; }          
+.date-heading { background:#e0e7ff; color:#3730a3; padding:0.75rem 1rem; border-radius:0.75rem; font-size:1.1rem; font-weight:700; display:flex; justify-content:space-between; align-items:center; cursor:pointer; user-select:none; }          
+.toggle-icon { transition:transform 0.3s; }          
+.date-heading.collapsed .toggle-icon { transform:rotate(-90deg); }          
+.group-tasks.hidden { display:none; }          
+
+.task-item { background:#f9fafb; border-radius:0.5rem; padding:0.5rem 0.75rem; margin:0.5rem 0; border-left:5px solid transparent; }          
+.task-item:hover { background:#eef2ff; border-left-color:#6366f1; }          
+.completed { background:#dcfce7 !important; border-left-color:#22c55e !important; color:#166534; }          
+
+/* Task Header Buttons */          
+.task-header { display:flex; justify-content:flex-end; gap:0.4rem; margin-bottom:0.3rem; }          
+.task-body { display:flex; flex-direction:column; }          
+.task-text { font-weight:500; padding-right:0.5rem; }          
+.task-note { font-size:0.85rem; color:#555; padding-left:0.6rem; border-left:2px solid #ddd; }          
+
+/* Buttons */          
+.btn { border:none; cursor:pointer; font-size:0.85rem; border-radius:0.5rem; padding:0.4rem 0.7rem; font-weight:500; display:flex; align-items:center; gap:0.25rem; transition:all 0.2s; white-space:nowrap; }          
+.complete-btn { background:#22c55e; color:white; }          
+.complete-btn:hover { background:#16a34a; transform:scale(1.05); }          
+.edit-btn { background:#3b82f6; color:white; }          
+.edit-btn:hover { background:#2563eb; transform:scale(1.05); }          
+.delete-btn { background:#ef4444; color:white; }          
+.delete-btn:hover { background:#b91c1c; transform:scale(1.05); }          
+
+/********* MODALS *********/          
+#editModal, #deleteModal { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:100; }          
+.modal-content { background:#fff; padding:1.5rem; border-radius:1rem; width:90%; max-width:400px; box-shadow:0 10px 25px rgba(0,0,0,0.2); }          
+#editModal input { width:100%; padding:0.7rem; margin-bottom:0.8rem; border-radius:0.5rem; border:1px solid #c7d2fe; }          
+.modal-content button { padding:0.6rem 1rem; border:none; border-radius:0.5rem; cursor:pointer; font-weight:600; margin-right:0.5rem; }          
+.save-btn { background:#4f46e5; color:white; }          
+.cancel-btn, .delete-cancel-btn { background:#d1d5db; color:#111827; }          
+.delete-confirm-btn { background:#ef4444; color:white; }          
+
+/* Template Task Toggle */ 
+#templateTasksHeader { display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-weight:700; margin-bottom:0.5rem; }
+#templateTasksContent.hidden { display:none; }  
+.toggle-template { transition: transform 0.3s; }
+.toggle-template.collapsed { transform: rotate(-90deg); }
+
+/* Offline Sync Indicator */
+#syncStatus {
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+}
+/* Manual Sync Button Style */
+.manual-sync-btn {
+    background:#10b981; /* Green color for sync */
+    color: white;
+    padding: 0.8rem 1.2rem;
+    border: none;
+    border-radius: 0.6rem;
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.manual-sync-btn:hover {
+    background: #059669;
+}
+</style>          
+</head>          
+
+<body>          
+
+<h1>✅ स्मार्ट टास्क + नोट प्लानर</h1>          
+
+<div class="task-input-section">          
+  <input id="taskInput" type="text" placeholder="टास्क लिखें...">          
+  <input id="noteInput" type="text" placeholder="नोट (वैकल्पिक)">          
+  <input id="taskDate" type="date">          
+  <button onclick="addTask()">➕ जोड़ें</button>          
+</div>          
+
+<div class="filter-bar">          
+  <label>📆 तारीख से फ़िल्टर करें: </label>          
+  <input id="filterDate" type="date" onchange="renderTasks()">          
+</div>          
+
+<div class="task-list-section">          
+  <div id="tasksByDateContainer"></div>          
+</div>          
+
+<div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin: 1rem 0;">
+    <div id="syncStatus" style="flex-grow: 1; padding: 0.8rem; border-radius: 0.6rem; text-align: center; background: #d1fae5; color: #065f46;">
+        🌐 ऑनलाइन मोड
+    </div>
+    <button class="manual-sync-btn" onclick="manualSyncTrigger()">
+        🔄 Sync करें
+    </button>
+</div>
+
+
+<div id="templateTasksSection" style="background:#fff; padding:1rem; border-radius:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); margin-top:1rem;">          
+  <div id="templateTasksHeader" onclick="toggleTemplateTasks()">
+    <h2 style="margin:0; color:#4f46e5;">📁 टेम्पलेट टास्क</h2>
+    <span id="templateToggleIcon" class="toggle-template collapsed">▼</span>
+  </div>
+  <div id="templateTasksContent" class="hidden">
+    <div id="templateTasksList">⏳ Loading...</div>
+  </div>
+</div>          
+
+<div class="redirect-btn-container">  
+  <button class="redirect-btn" onclick="openNewPage()">➡ नया पेज खोलें</button>  
+</div>  
+
+<div id="editModal">          
+  <div class="modal-content">          
+    <h3>टास्क संपादित करें</h3>          
+    <input id="editTaskText" type="text">          
+    <input id="editTaskNote" type="text">          
+    <div style="text-align:right;">          
+      <button class="cancel-btn" onclick="closeModal()">रद्द करें</button>          
+      <button class="save-btn" onclick="saveEdit()">सहेजें</button>          
+    </div>          
+  </div>          
+</div>          
+
+<div id="deleteModal">          
+  <div class="modal-content">          
+    <h3>क्या आप हटाना चाहते हैं?</h3>          
+    <div style="text-align:right;">          
+      <button class="delete-cancel-btn" onclick="closeDeleteModal()">रद्द करें</button>          
+      <button class="delete-confirm-btn" onclick="confirmDelete()">हटाएँ</button>          
+    </div>          
+  </div>          
+</div>          
+
+<script>          
+/* -------------------------------------------------          
+   GITHUB CONFIG          
+-------------------------------------------------- */          
+const GITHUB_USER = "abhir12ram";  
+const GITHUB_REPO = "DailyTaskDb";  
+// WARNING: This token is hardcoded and public. 
+// For real applications, use a server-side process or safer authentication.
+const GITHUB_TOKEN = "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";  
+const GITHUB_FILE_PATH = "task.json";  
+
+/* Encode JSON */          
+function encodeJSON(obj) {          
+  return btoa(unescape(encodeURIComponent(JSON.stringify(obj, null, 2))));          
+}          
+
+/* Load File */          
+async function getGithubFile() {          
+  const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;          
+  const res = await fetch(url, {          
+    headers: { "Authorization": `Bearer ${GITHUB_TOKEN}` }          
+  });          
+  if (!res.ok) throw new Error("GitHub file fetch failed");
+  return await res.json();
+}          
+
+/* Update File */          
+async function updateGithubFile(tasks) {          
+  try {          
+    const file = await getGithubFile();          
+    const sha = file.sha;          
+
+    const body = {          
+      message: "task.json sync",          
+      content: encodeJSON(tasks),          
+      sha: sha          
+    };          
+
+    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;          
+
+    const res = await fetch(url, {          
+      method: "PUT",          
+      headers: {          
+        "Authorization": `Bearer ${GITHUB_TOKEN}`,          
+        "Content-Type": "application/json"          
+      },          
+      body: JSON.stringify(body)          
+    });          
+
+    if (!res.ok) throw new Error("GitHub update failed");
+    console.log("✔ GitHub Updated");          
+    return true; // Success
+  } catch (e) {          
+    console.log("❌ GitHub Error:", e);          
+    return false; // Failure
+  }          
+}          
+
+/* -------------------------------------------------          
+   INDEXEDDB SETUP FOR OFFLINE SYNC          
+-------------------------------------------------- */          
+let db;
+const DB_NAME = 'TaskSyncDB';
+const STORE_NAME = 'pendingSync';
+
+function openDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, 1);
+
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+            }
+        };
+
+        request.onsuccess = (e) => {
+            db = e.target.result;
+            resolve(db);
+        };
+
+        request.onerror = (e) => {
+            reject("Error opening IndexedDB");
+        };
+    });
+}
+
+function savePendingSync(tasks) {
+    if (!db) return;
+    const transaction = db.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    
+    // Clear previous pending task and store the current tasks
+    store.clear();
+    store.add({ id: 1, tasks: tasks }); 
+
+    transaction.oncomplete = () => console.log("Tasks saved to IndexedDB for sync.");
+    transaction.onerror = (e) => console.error("Error saving to IndexedDB:", e);
+}
+
+function getPendingSync() {
+    return new Promise((resolve, reject) => {
+        if (!db) return reject("DB not initialized");
+        const transaction = db.transaction(STORE_NAME, 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.get(1); 
+
+        request.onsuccess = (e) => {
+            resolve(e.target.result ? e.target.result.tasks : null);
+        };
+
+        request.onerror = (e) => {
+            reject("Error getting pending sync data");
+        };
+    });
+}
+
+function clearPendingSync() {
+    if (!db) return;
+    const transaction = db.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    store.clear();
+    transaction.oncomplete = () => console.log("IndexedDB cleared after successful sync.");
+    transaction.onerror = (e) => console.error("Error clearing IndexedDB:", e);
+}
+
+/* -------------------------          
+   STORAGE + UTILITIES          
+-------------------------- */          
+const STORAGE_KEY = "t";          
+let groupStates = {};           
+let deleteId = null;          
+let editId = null;          
+
+function getToday(){ return new Date().toISOString().slice(0,10); }          
+function loadTasks(){ return JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]"); }          
+
+/* SAVE + SYNC LOGIC */          
+async function saveTasks(tasks, shouldSync = true){          
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));          
+  renderTasks();          
+  
+  if (shouldSync) {
+    await syncTasksToGithub(tasks);
+  }
+}          
+
+async function syncTasksToGithub(tasks) {
+    const statusElement = document.getElementById("syncStatus");
+
+    if (navigator.onLine) {
+        statusElement.innerHTML = "🔄 सिंक हो रहा है...";
+        statusElement.style.background = '#fef3c7'; // Yellow
+        statusElement.style.color = '#a16207';
+        
+        const success = await updateGithubFile(tasks);
+
+        if (success) {
+            clearPendingSync();
+            statusElement.innerHTML = "🌐 ऑनलाइन मोड (सिंक सफल)";
+            statusElement.style.background = '#d1fae5'; // Green
+            statusElement.style.color = '#065f46';
+        } else {
+            // Failed, save to pending sync
+            savePendingSync(tasks);
+            statusElement.innerHTML = "⚠️ सिंक फेल हुआ, ऑफ़लाइन सेव्ड";
+            statusElement.style.background = '#fee2e2'; // Red
+            statusElement.style.color = '#991b1b';
+        }
+    } else {
+        // Offline, save to pending sync
+        savePendingSync(tasks);
+        statusElement.innerHTML = "📴 ऑफ़लाइन मोड (सिंक बाकी)";
+        statusElement.style.background = '#ffedd5'; // Orange
+        statusElement.style.color = '#9a3412';
+    }
+}
+
+async function checkAndSync() {
+    const pendingTasks = await getPendingSync();
+    if (pendingTasks && navigator.onLine) {
+        console.log("Found pending tasks, initiating sync...");
+        // Re-save tasks to trigger the sync logic
+        await syncTasksToGithub(pendingTasks); 
+    } else if (navigator.onLine) {
+        // If online but no pending tasks, update status to green
+        document.getElementById("syncStatus").innerHTML = "🌐 ऑनलाइन मोड";
+        document.getElementById("syncStatus").style.background = '#d1fae5';
+        document.getElementById("syncStatus").style.color = '#065f46';
+
+    } else {
+        document.getElementById("syncStatus").innerHTML = pendingTasks ? 
+            "📴 ऑफ़लाइन मोड (सिंक बाकी)" : 
+            "📴 ऑफ़लाइन मोड";
+        document.getElementById("syncStatus").style.background = '#ffedd5';
+        document.getElementById("syncStatus").style.color = '#9a3412';
+    }
+}
+
+/* -------------------------          
+    MANUAL SYNC FUNCTION          
+-------------------------- */
+function manualSyncTrigger() {
+    const tasks = loadTasks();
+    syncTasksToGithub(tasks);
+}
+/* -------------------------          
+     MAIN FUNCTIONS          
+-------------------------- */          
+function addTask(){          
+  const text = taskInput.value.trim();          
+  const note = noteInput.value.trim();          
+  const date = taskDate.value || getToday();          
+
+  if(!text) return alert("कृपया टास्क लिखें!");          
+
+  const tasks = loadTasks();          
+  tasks.push({id:Date.now(), text, note, date, completed:false});          
+  saveTasks(tasks);          
+
+  taskInput.value="";          
+  noteInput.value="";          
+}          
+
+function toggleComplete(id){          
+  const tasks = loadTasks();          
+  const t = tasks.find(x=>x.id===id);          
+  if(t) t.completed = !t.completed;          
+  saveTasks(tasks);          
+}          
+
+function editTask(id){          
+  const tasks = loadTasks();          
+  const t = tasks.find(x=>x.id===id);          
+  if(!t) return;          
+
+  editId=id;          
+  editTaskText.value=t.text;          
+  editTaskNote.value=t.note;          
+  editModal.style.display="flex";          
+}          
+
+function closeModal(){ editId=null; editModal.style.display="none"; }          
+
+function saveEdit(){          
+  const tasks=loadTasks();          
+  const t=tasks.find(x=>x.id===editId);          
+  if(!t) return;          
+
+  t.text=editTaskText.value.trim();          
+  t.note=editTaskNote.value.trim();          
+  saveTasks(tasks);          
+  closeModal();          
+}          
+
+function deleteTask(id){ deleteId=id; deleteModal.style.display="flex"; }          
+function closeDeleteModal(){ deleteId=null; deleteModal.style.display="none"; }          
+
+function confirmDelete(){          
+  if(deleteId===null) return;          
+
+  const tasks=loadTasks().filter(x=>x.id!==deleteId);          
+  saveTasks(tasks);          
+
+  closeDeleteModal();          
+}          
+
+/* -------------------------          
+    GROUP TOGGLE          
+-------------------------- */          
+function toggleGroup(e,date){          
+  e.stopPropagation();          
+  groupStates[date] = !groupStates[date];          
+  renderTasks();          
+}          
+
+/* -------------------------          
+   RENDER TASKS          
+-------------------------- */          
+function renderTasks(){          
+  const tasks=loadTasks();          
+  const container=document.getElementById("tasksByDateContainer");          
+  const filterDate=document.getElementById("filterDate").value;          
+
+  container.innerHTML="";          
+  let filtered=tasks;          
+
+  if(filterDate) filtered=tasks.filter(t=>t.date===filterDate);          
+
+  if(!filtered.length){          
+    container.innerHTML="<p style='text-align:center;color:gray;'>कोई टास्क नहीं 🎉</p>";          
+    return;          
+  }          
+
+  const grouped={};          
+  for(const t of filtered){          
+    if(!grouped[t.date]) grouped[t.date]=[];          
+    grouped[t.date].push(t);          
+  }          
+
+  const dates=Object.keys(grouped).sort((a,b)=>b.localeCompare(a));          
+
+  for(const date of dates){          
+    const collapsed = groupStates[date] === undefined ? true : groupStates[date];          
+
+    const groupDiv=document.createElement("div");          
+    groupDiv.className="date-group";          
+
+    groupDiv.innerHTML=`          
+      <div class="date-heading ${collapsed?"collapsed":""}">          
+        <span onclick="toggleGroup(event,'${date}')">${date}</span>          
+        <span class="toggle-icon" onclick="toggleGroup(event,'${date}')">▼</span>          
+      </div>          
+
+      <div id="group-${date}" class="group-tasks ${collapsed?"hidden":""}">          
+        ${grouped[date].map(t=>`          
+          <div class="task-item ${t.completed?"completed":""}">          
+            <div class="task-header">          
+              <button class="btn complete-btn" onclick="toggleComplete(${t.id})">          
+                ${t.completed?"↩️ Undo":"✅ Done"}          
+              </button>          
+              <button class="btn edit-btn" onclick="editTask(${t.id})">✏️ Edit</button>          
+              <button class="btn delete-btn" onclick="deleteTask(${t.id})">🗑 Delete</button>          
+            </div>          
+
+            <div class="task-body">          
+              <div class="task-text">${t.text}</div>          
+              <div class="task-note">📝 ${t.note ? t.note : "<i>कोई नोट नहीं</i>"}</div>          
+            </div>          
+          </div>          
+        `).join("")}          
+      </div>          
+    `;          
+
+    container.appendChild(groupDiv);          
+  }          
+}          
+
+/* -------------------------          
+    TEMPLATE TASKS          
+-------------------------- */          
+let templateTasks = [];          
+async function loadTemplateTasks() {          
+  try {          
+    const res = await fetch("https://raw.githubusercontent.com/abhir12ram/DailyTaskDb/refs/heads/main/templateTasks.json");          
+    templateTasks = await res.json();          
+    renderTemplateTasks();          
+  } catch (e) {          
+    document.getElementById("templateTasksList").innerHTML =  
+      "<p style='color:red;'>❌ templateTasks.json file missing</p>";          
+  }          
+}          
+
+function renderTemplateTasks() {          
+  const list = document.getElementById("templateTasksList");          
+
+  if (!templateTasks.length) {          
+    list.innerHTML = "<p style='color:gray;'>कोई टेम्पलेट नहीं मिला</p>";          
+    return;          
+  }          
+
+  list.innerHTML = templateTasks          
+    .map((t, i) => `          
+      <div style="display:flex; justify-content:space-between; background:#f3f4f6; padding:0.6rem; margin:0.3rem 0; border-radius:0.5rem;">          
+        <div>          
+          <b>${t.text}</b><br>          
+          <small>📝 ${t.note}</small>          
+        </div>          
+
+        <button           
+          onclick="addTemplateTask(${i})"          
+          style="background:#4f46e5;color:white;border:none;padding:0.4rem 1rem;border-radius:0.5rem;cursor:pointer;font-weight:600;">          
+          ➕ Add          
+        </button>          
+      </div>          
+    `).join("");          
+}          
+
+function addTemplateTask(index) {          
+  const t = templateTasks[index];          
+  if (!t) return;          
+
+  const tasks = loadTasks();          
+  tasks.push({          
+    id: Date.now(),          
+    text: t.text,          
+    note: t.note,          
+    date: getToday(),          
+    completed: false          
+  });          
+
+  saveTasks(tasks);          
+  alert("✔ Daily Task में जोड़ दिया गया!");          
+}          
+
+/* -------------------------          
+    TEMPLATE TASKS TOGGLE          
+-------------------------- */          
+function toggleTemplateTasks() {          
+  const content = document.getElementById("templateTasksContent");          
+  const icon = document.getElementById("templateToggleIcon");          
+  content.classList.toggle("hidden");          
+  icon.classList.toggle("collapsed");          
+}          
+
+/* -------------------------          
+   REDIRECT FUNCTION          
+-------------------------- */          
+function openNewPage() {  
+  window.location.href = "newpage.html";  
+}  
+
+/* -------------------------          
+    INIT          
+-------------------------- */          
+taskDate.value = getToday();          
+openDB().then(() => {
+    // Check for pending sync every 5 seconds when online
+    if (navigator.onLine) {
+        checkAndSync();
+        setInterval(checkAndSync, 5000); 
+    }
+});
+renderTasks();          
+loadTemplateTasks();
+
+// Listen for the user coming back online
+window.addEventListener('online', checkAndSync);
+</script>          
+
+</body>          
+</html>
