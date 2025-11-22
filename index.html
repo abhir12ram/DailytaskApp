@@ -1,0 +1,181 @@
+<!DOCTYPE html>          
+<html lang="hi">          
+<head>          
+<meta charset="UTF-8">          
+<meta name="viewport" content="width=device-width, initial-scale=1.0">          
+<title>✅ स्मार्ट टास्क प्लानर (GitHub Read-Only)</title>          
+
+<style>          
+body { font-family:'Poppins', sans-serif; background:#f9fafb; margin:0; padding:1rem; color:#111827; }          
+h1 { text-align:center; color:#3730a3; margin-bottom:1rem; }          
+
+/* Input Section - Only 'Add' functionality remains but is disabled for read-only mode */          
+.task-input-section { display:flex; flex-wrap:wrap; gap:0.5rem; background:#fff; padding:1rem; border-radius:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); justify-content:center; opacity: 0.5; pointer-events: none;}          
+.task-input-section input { flex:1; min-width:150px; padding:0.8rem; border:2px solid #c7d2fe; border-radius:0.6rem; outline:none; }          
+.task-input-section button { background:#4f46e5; color:white; border:none; border-radius:0.6rem; padding:0.8rem 1.6rem; cursor:pointer; font-weight:600; }          
+
+/* Filter */          
+.filter-bar { text-align:center; margin:1rem 0; }          
+.filter-bar input { padding:0.6rem; border-radius:0.6rem; border:1px solid #c7d2fe; }          
+
+/* Task List */          
+.task-list-section { background:#fff; border-radius:1rem; padding:1rem; box-shadow:0 4px 15px rgba(0,0,0,0.1); }          
+.date-group { border-top:1px solid #e5e7eb; padding-top:1rem; margin-top:1rem; }          
+.date-heading { background:#e0e7ff; color:#3730a3; padding:0.75rem 1rem; border-radius:0.75rem; font-size:1.1rem; font-weight:700; display:flex; justify-content:space-between; align-items:center; cursor:default; user-select:none; }          
+.task-item { background:#f9fafb; border-radius:0.5rem; padding:0.5rem 0.75rem; margin:0.5rem 0; border-left:5px solid transparent; }          
+.completed { background:#dcfce7 !important; border-left-color:#22c55e !important; color:#166534; }          
+
+/* Read-Only Status */
+#loadStatus {
+    text-align: center;
+    padding: 0.8rem;
+    border-radius: 0.6rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    background: #fef3c7; 
+    color: #a16207;
+}
+
+/* Hidden elements for read-only view */
+.task-header, .toggle-icon { display: none !important; }
+
+</style>          
+</head>          
+
+<body>          
+
+<h1>✅ टास्क प्लानर (रीड-ओनली)</h1>          
+
+<div class="task-input-section">          
+  <input id="taskInput" type="text" placeholder="टास्क लिखें...">          
+  <input id="noteInput" type="text" placeholder="नोट (वैकल्पिक)">          
+  <input id="taskDate" type="date">          
+  <button>➕ जोड़ें (अक्षम)</button>          
+</div>          
+
+<div id="loadStatus">⏳ GitHub से डेटा लोड हो रहा है...</div>
+
+<div class="filter-bar">          
+  <label>📆 तारीख से फ़िल्टर करें: </label>          
+  <input id="filterDate" type="date" onchange="renderTasks()">          
+</div>          
+
+<div class="task-list-section">          
+  <div id="tasksByDateContainer"></div>          
+</div>          
+
+<script>          
+/* -------------------------------------------------          
+   GITHUB CONFIG          
+-------------------------------------------------- */          
+const GITHUB_USER = "abhir12ram";  
+const GITHUB_REPO = "DailyTaskDb";  
+const GITHUB_FILE_PATH = "task.json";  
+
+let allTasks = []; // Holds the tasks loaded from GitHub
+let groupStates = {};           
+
+/* -------------------------------------------------          
+   GITHUB DATA LOAD FUNCTION          
+-------------------------------------------------- */          
+async function loadTasksFromGithub() {          
+    const statusElement = document.getElementById("loadStatus");
+    statusElement.innerHTML = "⏳ GitHub से डेटा लोड हो रहा है...";
+    statusElement.style.background = '#fef3c7'; // Yellow
+    statusElement.style.color = '#a16207';
+    
+    const url = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${GITHUB_FILE_PATH}`;
+
+    try {          
+        const res = await fetch(url);          
+        if (!res.ok) {
+            throw new Error(`GitHub API error: ${res.status} ${res.statusText}`);
+        }
+        allTasks = await res.json();
+        
+        // Ensure tasks are an array
+        if (!Array.isArray(allTasks)) {
+             throw new Error("Invalid data format received from GitHub.");
+        }
+        
+        renderTasks();
+        
+        statusElement.innerHTML = "✅ टास्क सफलतापूर्वक लोड हो गए। (रीड-ओनली)";
+        statusElement.style.background = '#d1fae5'; // Green
+        statusElement.style.color = '#065f46';
+
+    } catch (e) {          
+        console.error("❌ GitHub Load Error:", e);
+        statusElement.innerHTML = `❌ डेटा लोड नहीं हो सका: ${e.message}`;
+        statusElement.style.background = '#fee2e2'; // Red
+        statusElement.style.color = '#991b1b';
+        document.getElementById("tasksByDateContainer").innerHTML = "<p style='text-align:center; color:red;'>डेटा लोड करने में विफल। कृपया इंटरनेट कनेक्शन और फ़ाइल पथ की जाँच करें।</p>";
+    }          
+}          
+
+/* -------------------------          
+   RENDER TASKS (Using allTasks array)          
+-------------------------- */          
+function renderTasks(){          
+  const container=document.getElementById("tasksByDateContainer");          
+  const filterDate=document.getElementById("filterDate").value;          
+
+  container.innerHTML="";          
+  let filtered=allTasks;          
+
+  if(filterDate) filtered=allTasks.filter(t=>t.date===filterDate);          
+
+  if(!filtered.length){          
+    container.innerHTML="<p style='text-align:center;color:gray;'>कोई टास्क नहीं 🎉</p>";          
+    return;          
+  }          
+
+  const grouped={};          
+  for(const t of filtered){          
+    // Check if task object is valid (must have a date property)
+    if (t.date) {
+        if(!grouped[t.date]) grouped[t.date]=[];          
+        grouped[t.date].push(t);          
+    }
+  }          
+
+  const dates=Object.keys(grouped).sort((a,b)=>b.localeCompare(a));          
+
+  for(const date of dates){          
+    // Grouping is always expanded in read-only mode for simplicity, 
+    // or you can set a default state. We'll leave it simple.
+    const collapsed = false; // Always show groups
+
+    const groupDiv=document.createElement("div");          
+    groupDiv.className="date-group";          
+
+    groupDiv.innerHTML=`          
+      <div class="date-heading ${collapsed?"collapsed":""}">          
+        <span>${date}</span>          
+        </div>          
+
+      <div id="group-${date}" class="group-tasks ${collapsed?"hidden":""}">          
+        ${grouped[date].map(t=>`          
+          <div class="task-item ${t.completed?"completed":""}">          
+            <div class="task-body">          
+              <div class="task-text">• ${t.text}</div>          
+              <div class="task-note">📝 ${t.note ? t.note : "<i>कोई नोट नहीं</i>"}</div>          
+            </div>          
+          </div>          
+        `).join("")}          
+      </div>          
+    `;          
+
+    container.appendChild(groupDiv);          
+  }          
+}          
+
+/* -------------------------          
+    INIT          
+-------------------------- */          
+// Start loading data on page load
+loadTasksFromGithub();
+</script>          
+
+</body>          
+</html>
